@@ -1,134 +1,24 @@
-* select,iocp,epoll,kqueue 及各种I/O复用机制
+* I/O 复用机制
+** 基本linux I/O模型的简化矩阵
 
-** blocking I/O
-阻塞套接字，下图是它的调用过程图示：
-#+BEGIN_SRC plantuml :file image/blocking_io.png
-@startuml
-skinparam backgroundColor #EEEBDC
-skinparam handwritten true
+                Blocking                        Non-blocking
 
-skinparam sequence {
+Synchronous     Read/Write                      Read/Write(O_NONBLOCK)
 
-ArrowColor DeepSkyBlue
-LifeLineBorderColor blue
-LifeLineBackgroundColor #A9DCDF
+Asynchronous    I/O mutiplexing(select/poll)    AIO
 
-ParticipantBorderColor Deepskyblue
-ParticipantBackgroundColor DodgerBlue
-ParticipantFontName Impact
-ParticipantFontSize 17
-ParticipantFontColor #A9DCDF
+** Synchronous blocking I/O
+同步阻塞I/O模型的典型流程：
+[[file:image/sync_blocking.png]]
 
-}
+** Synchronous nonblocking I/O
+同步非阻塞I/O模型的典型流程：
+[[file:image/sync_nonblocking.png]]
 
-participant Application as A
-participant Kernel as K
-A -> A : process blocks in call to recvform
-activate A
-A -> A: recvform
-activate A #59DCDF
-A -> K : system call
-activate K
+** Asynchronous blocking I/O (select/poll)
+异步阻塞I/O模型的典型流程：
+[[file:image/async_blocking.png]]
 
-note right of K : no datagram ready
-K -> K : wait for data
-activate K #59DCDF
-K <--] : datagram ready
-deactivate K
-K -> K : copy datagram
-activate K #59DCDF
-K -->] : copy data from kernel to user
-K <--] : copy complete
-deactivate K
-
-K -> A : return OK
-deactivate K
-
-deactivate A
-A -> A : process datagram
-deactivate A
-
-@enduml
-#+END_SRC
-
-#+RESULTS:
-[[file:image/blocking_io.png]]
-
-注意：Kernel有两个过程，wait for data和copy data from kernel to user。直到最后copy complete后，recvfrom（）才返回。此过程一直是阻塞的。
-
-** nonblocking I/O
-与blocking I/O对立的，非阻塞套接字，调用过程如下图：
-
-#+BEGIN_SRC plantuml :file image/nonblocking_io.png
-@startuml
-skinparam backgroundColor #EEEBDC
-skinparam handwritten true
-
-skinparam sequence {
-
-ArrowColor DeepSkyBlue
-LifeLineBorderColor blue
-LifeLineBackgroundColor #A9DCDF
-
-ParticipantBorderColor Deepskyblue
-ParticipantBackgroundColor DodgerBlue
-ParticipantFontName Impact
-ParticipantFontSize 17
-ParticipantFontColor #A9DCDF
-
-}
-participant Application as A
-participant Kernel as K
-
-A -> A : process repeatedly calls recvform waiting for an OK return
-activate A
-A -> K : recvform
-activate A #59DCDF
-A -> K : system call
-activate K
-note right of K : no datagram ready
-K -> K : wait for data
-activate K #59DCDF
-K -> A : EWOULDBLOCK
-deactivate K
-
-A -> K : system call
-note right of K : no datagram ready
-K -> K : wait for data
-activate K #59DCDF
-K -> A : EWOULDBLOCK
-deactivate K
-
-A -> K : system call
-note right of K : no datagram ready
-K -> K : wait for data
-activate K #59DCDF
-K -> A : EWOULDBLOCK
-deactivate K
-
-A -> K : system call
-activate K #59DCDF
-K <--] : datagram ready
-
-deactivate K
-K -> K : copy datagram
-activate K #59DCDF
-K -->] : copy data from kernel to user
-K <--] : copy complete
-deactivate K
-
-K -> A : return OK
-deactivate K
-
-deactivate A
-A -> A : process datagram
-deactivate A
-@enduml
-#+END_SRC
-可以看到，如果直接操作它，那就是个轮询，直到内核缓冲区有数据。
-
-** I/O multiplexing (select and poll)
-
-#+RESULTS:
-[[file:image/nonblocking_io.png]]
-
+** Asynchronous nonblocking I/O (AIO)
+异步非阻塞I/O模型的典型流程：
+[[file:image/async_nonblocking.png]]

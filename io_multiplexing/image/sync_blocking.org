@@ -1,0 +1,42 @@
+#+BEGIN_SRC plantuml :file sync_blocking.png
+@startuml
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
+
+skinparam sequence {
+ArrowColor DeepSkyBlue
+
+LifeLineBorderColor blue
+LifeLineBackgroundColor #A9DCDF
+
+ParticipantBorderColor Deepskyblue
+ParticipantBackgroundColor DodgerBlue
+ParticipantFontName Impact
+ParticipantFontSize 17
+ParticipantFontColor #A9DCDF
+}
+
+participant Application as A
+participant Kernel as K
+==  No datagram ready ==
+A -> A : Read
+activate A
+A -> K : System call - kernel context switch
+activate K
+K ->] : Initiate read I/O
+deactivate K
+note over A : Application blocked
+     K <-] : Read response
+activate K
+== Datagram ready ==
+A <- K : Data movement from kernel space to user space
+deactivate K
+A -> A : Return
+deactivate A
+
+@enduml
+#+END_SRC
+
+#+RESULTS:
+[[file:sync_blocking.png]]
+
