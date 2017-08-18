@@ -1,4 +1,4 @@
-#+BEGIN_SRC plantuml :file sync_nonblocking.png
+#+BEGIN_SRC plantuml :file async_nonblocking.png
 @startuml
 skinparam backgroundColor #EEEBDC
 skinparam handwritten true
@@ -16,44 +16,31 @@ ParticipantFontSize 17
 ParticipantFontColor #A9DCDF
 
 }
+
 participant Application as A
 participant Kernel as K
-
 == No datagram ready ==
-A -> A : Read
+A -> A : aio_read
 activate A
 A -> K : System call - kernel context switch
+deactivate A
 activate K
 K ->] : Initiate read I/O
-A <- K : EAGAIN/EWOULDBLOCK
 deactivate K
-A -> A : Return
-deactivate A
-
-A -> A : Read
-activate A
-A -> K : System call - kernel context switch
-activate K
-A <- K : EAGAIN/EWOULDBLOCK
-deactivate K
-A -> A : Return
-deactivate A
+||50||
+note over A : Other processing
+||50||
 == Datagram ready ==
      K <-] : Read response
 activate K
+A <- K : Data movement from kernel space to user space with signal or callback
 deactivate K
-A -> A : Read
 activate A
-A -> K : System call - kernel context switch
-activate K
-A <- K : Data movement from kernel space to user space
-deactivate K
-A -> A : Return
+A -> A : I/O processing
 deactivate A
-
 @enduml
 #+END_SRC
 
 #+RESULTS:
-[[file:sync_nonblocking.png]]
+[[file:async_nonblocking.png]]
 

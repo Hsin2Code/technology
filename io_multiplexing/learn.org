@@ -1,24 +1,20 @@
 * I/O 复用机制
-** 基本linux I/O模型的简化矩阵
-
-                Blocking                        Non-blocking
-
-Synchronous     Read/Write                      Read/Write(O_NONBLOCK)
-
-Asynchronous    I/O mutiplexing(select/poll)    AIO
-
 ** Synchronous blocking I/O
 同步阻塞I/O模型的典型流程：
+
 [[file:image/sync_blocking.png]]
 
 ** Synchronous nonblocking I/O
 同步非阻塞I/O模型的典型流程：
+
 [[file:image/sync_nonblocking.png]]
 
 ** Asynchronous blocking I/O (select/poll)
 异步阻塞I/O模型的典型流程：
+
 [[file:image/async_blocking.png]]
 
 ** Asynchronous nonblocking I/O (AIO)
 异步非阻塞I/O模型的典型流程：
+
 [[file:image/async_nonblocking.png]]

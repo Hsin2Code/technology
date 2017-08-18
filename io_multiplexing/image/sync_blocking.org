@@ -25,10 +25,12 @@ A -> K : System call - kernel context switch
 activate K
 K ->] : Initiate read I/O
 deactivate K
+||50||
 note over A : Application blocked
+
+== Datagram ready ==
      K <-] : Read response
 activate K
-== Datagram ready ==
 A <- K : Data movement from kernel space to user space
 deactivate K
 A -> A : Return
