@@ -19,28 +19,18 @@ static void print_device(struct udev_device *dev)
     if(! product)
         product = "0000";
 
+    const char *sysname = udev_device_get_sysname(dev); // 系统名
+    const char *subsystem = udev_device_get_subsystem(dev); // 设备类型
+    const char *devtype = udev_device_get_devtype(dev); // 获取设备类型
+    const char *driver = udev_device_get_driver(dev);   // 驱动
+    const char *syspath = udev_device_get_syspath(dev); // 系统绝对路径
+    const char *devpath = udev_device_get_devpath(dev); // 设备路径
+    const char *devnode = udev_device_get_devnode(dev); // 设备节点
+
     // 打印数据，进行分析
-    printf("%s %s %s %s %6s %s:%s %s\n",
-           udev_device_get_subsystem(dev),
-           udev_device_get_devtype(dev),
-           udev_device_get_driver(dev),
-           udev_device_get_sysname(dev),
-           action,
-           vendor,
-           product,
-           udev_device_get_devnode(dev));
-}
-static void process_device(struct udev_device *dev)
-{
-    if(dev) {
-        if(udev_device_get_devnode(dev)) {
-            print_device(dev);
-            // TODO: 分析数据
-
-            // TODO: 推送硬件事件
-
-        }
-    }
+    printf("%s %s %s %s %s %s:%s\n %s %s\n",
+           action, sysname, subsystem, devtype, driver, vendor, product,
+           devnode, syspath);
 }
 
 static void enumerate_devices(struct udev *udev)
@@ -95,11 +85,12 @@ static void monitor_devices(struct udev *udev)
             // 获取udev设备映射
             struct udev_device *dev = udev_monitor_receive_device(mon);
 
-            process_device(dev);
+            print_device(dev);
             // 释放设备映射
             udev_device_unref(dev);
         }
     }
+    udev_monitor_unref(mon);
 }
 
 
@@ -112,12 +103,14 @@ int udevadm()
         std::cout << "Can't create udev" << "\n";
         return -1;
     }
+    // NOTE: 先创建监控事件之后进行枚举，防止另一种情况导致的事件丢失。
     // 枚举已存在设备
     enumerate_devices(udev);
     // 监听热插拔事件
     monitor_devices(udev);
     // 销毁对象
     udev_unref(udev);
+    return 0;
 }
 
 int main(int argc, char *argv[])
