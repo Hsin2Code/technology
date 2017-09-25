@@ -1,0 +1,7 @@
+这是一个继续nemo 的库使用 make && make install 编译即可。
+
+（nautilus）
+
+makefile 改动项
+变量 TARGET 是动态库名。
+变量 INSPATH 是安装目录。
